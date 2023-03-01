@@ -1,4 +1,4 @@
-use bitvec::{macros::internal::funty::Fundamental, prelude::*};
+use bitvec::prelude::*;
 use image::{io::Reader as ImageReader, GenericImage, GenericImageView};
 use regex::Regex;
 use std::error::Error;
@@ -9,7 +9,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = std::env::args().collect::<Vec<_>>();
 
     if args.len() == 2 {
-        println!("usage: main <input_path> <payload_string>");
+        //println!("usage: main <input_path> <payload_string>");
         return Ok(());
     }
 
@@ -21,20 +21,20 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // get width and height
     let (width, height) = img.dimensions();
-    println!("width: {}, height: {}", width, height);
+    //println!("width: {}, height: {}", width, height);
     let mut gen = PixelGenerator::new(114514, width, height);
 
     let payload_str = "situ2001, 114514 is a good number";
 
     // first fill metadata
     let metadata_str = format!("{{{{{}}}}}", payload_str.len());
-    println!("{}", metadata_str);
+    //println!("{}", metadata_str);
     // concat it to payload string
     let payload_str = format!("{}{}", metadata_str, payload_str);
 
     // fill the payload string
     for ch in payload_str.as_bytes() {
-        println!("Current char: {}", ch.as_char().unwrap());
+        //println!("Current char: {}", ch.as_char().unwrap());
         let bits = ch.view_bits::<Msb0>();
         for bit in bits {
             let (x, y) = gen.next();
@@ -44,7 +44,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             new_pixel.0[0] = new_pixel.0[0] & 0b11111110 | bit_to_be_filled;
             img.put_pixel(x, y, new_pixel);
         }
-        println!("{} => {:?}", ch, bits);
+        //println!("{} => {:?}", ch, bits);
     }
     // save the new image
     img.save("./output.png")?;
@@ -54,7 +54,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         // decode the image
         let img = ImageReader::open("./output.png")?.decode()?;
         let (width, height) = img.dimensions();
-        println!("width: {}, height: {}", width, height);
+        //println!("width: {}, height: {}", width, height);
 
         let payload_string_len: usize;
 
@@ -77,7 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 current_char_bits.clear();
             }
             if metadata_string.len() == 2 && metadata_string != "{{" {
-                println!("Invalid metadata");
+                //println!("Invalid metadata");
                 return Ok(());
             }
             // regex match {{.*}}
@@ -85,7 +85,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 let re = Regex::new(r"\{\{(\d+)\}\}").unwrap();
                 if let Some(caps) = re.captures(&metadata_string) {
                     payload_string_len = caps.get(1).unwrap().as_str().parse::<usize>().unwrap();
-                    println!("Payload len: {}", payload_string_len);
+                    //println!("Payload len: {}", payload_string_len);
                     break;
                 }
             }
