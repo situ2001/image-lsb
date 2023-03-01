@@ -85,7 +85,6 @@ impl ImageEncoder {
         if !self.check_available_space(&metadata_str) {
             panic!("Not enough space to write metadata");
         }
-        dbg!(&metadata_str);
         for ch in metadata_str.as_bytes() {
             let bits = ch.view_bits::<Msb0>();
             for bit in bits {
