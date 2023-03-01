@@ -18,3 +18,4 @@ image = "0.24.5"
 bitvec = "1.0.1"
 regex = "1"
 rand = "0.8.5"
+clap = { version = "4.0", features = ["derive"] }
