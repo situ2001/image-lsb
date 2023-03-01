@@ -3,11 +3,9 @@ use image::{io::Reader as ImageReader, GenericImage, GenericImageView};
 use regex::Regex;
 use std::error::Error;
 
-use lsb_image::f;
+use lsb_image::PixelGenerator;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    println!("{}", f());
-
     let args = std::env::args().collect::<Vec<_>>();
 
     if args.len() == 2 {
@@ -24,9 +22,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     // get width and height
     let (width, height) = img.dimensions();
     println!("width: {}, height: {}", width, height);
-    let mut x = 0;
-    let mut y = 0;
-    let payload_str = "situ2001";
+    let mut gen = PixelGenerator::new(114514, width, height);
+
+    let payload_str = "situ2001, 114514 is a good number";
 
     // first fill metadata
     let metadata_str = format!("{{{{{}}}}}", payload_str.len());
@@ -39,18 +37,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("Current char: {}", ch.as_char().unwrap());
         let bits = ch.view_bits::<Msb0>();
         for bit in bits {
+            let (x, y) = gen.next();
             // println!("bit: {}", if bit == true { 1 } else { 0 });
             let bit_to_be_filled = if bit == true { 1 } else { 0 };
             let mut new_pixel = img.get_pixel(x, y);
             new_pixel.0[0] = new_pixel.0[0] & 0b11111110 | bit_to_be_filled;
             img.put_pixel(x, y, new_pixel);
-            // TODO refactor with an abstract next() method, e.g, the next x y are generated from a random sequence with a specific seed
-            if x == width - 1 {
-                x = 0;
-                y += 1;
-            } else {
-                x += 1;
-            }
         }
         println!("{} => {:?}", ch, bits);
     }
@@ -58,19 +50,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     img.save("./output.png")?;
 
     {
+        let mut gen = PixelGenerator::new(114514, width, height);
         // decode the image
         let img = ImageReader::open("./output.png")?.decode()?;
         let (width, height) = img.dimensions();
         println!("width: {}, height: {}", width, height);
 
-        let mut x = 0;
-        let mut y = 0;
         let payload_string_len: usize;
 
         // read string like {{len}} from image
         let mut metadata_string = String::new();
         let mut current_char_bits: Vec<u8> = Vec::new();
         loop {
+            let (x, y) = gen.next();
             let pixel = img.get_pixel(x, y);
             let bit = pixel.0[0] & 0b00000001;
             // println!("bit: {}", bit);
@@ -83,12 +75,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 metadata_string.push(collected_char as char);
                 // println!("Collected: {}", collected_char as char);
                 current_char_bits.clear();
-            }
-            if x == width - 1 {
-                x = 0;
-                y += 1;
-            } else {
-                x += 1;
             }
             if metadata_string.len() == 2 && metadata_string != "{{" {
                 println!("Invalid metadata");
@@ -108,6 +94,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut payload = String::new();
         let mut current_char_bits: Vec<u8> = Vec::new();
         for _ in 0..payload_string_len * 8 {
+            let (x, y) = gen.next();
             let pixel = img.get_pixel(x, y);
             let bit = pixel.0[0] & 0b00000001;
             // println!("bit: {}", bit);
@@ -119,12 +106,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 // convert to char and append to string
                 payload.push(collected_char as char);
                 current_char_bits.clear();
-            }
-            if x == width - 1 {
-                x = 0;
-                y += 1;
-            } else {
-                x += 1;
             }
         }
         println!("Decoded: {}", payload);
