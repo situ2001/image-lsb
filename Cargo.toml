@@ -1,16 +1,16 @@
 [package]
-name = "lsb-image"
+name = "image-lsb"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
-name = "lsb-image-cli"
+name = "image-lsb-cli"
 path = "src/main.rs"
 
 [lib]
-name = "lsb_image"
+name = "image_lsb"
 path = "src/lib.rs"
 
 [dependencies]
