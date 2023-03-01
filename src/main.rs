@@ -3,7 +3,11 @@ use image::{io::Reader as ImageReader, GenericImage, GenericImageView};
 use regex::Regex;
 use std::error::Error;
 
+use lsb_image::f;
+
 fn main() -> Result<(), Box<dyn Error>> {
+    println!("{}", f());
+
     let args = std::env::args().collect::<Vec<_>>();
 
     if args.len() == 2 {
