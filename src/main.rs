@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         if let Some(seed) = args.seed {
             let img = ImageReader::open(args.path)?.decode()?;
             let mut encoder = ImageEncoder::new(img, seed);
-            encoder.write_str("situ2001");
+            encoder.write_str(args.payload.unwrap().as_str());
             encoder.get_back_image().save(args.save_path.unwrap());
         }
     } else if args.mode.to_lowercase() == "decode" {
